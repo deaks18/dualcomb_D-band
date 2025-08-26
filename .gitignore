@@ -1,0 +1,10 @@
+# python
+__pycache__/
+*.py[cod]
+
+# matlab
+*.asv
+*.mexw64
+*.mat
+
+*.wv
