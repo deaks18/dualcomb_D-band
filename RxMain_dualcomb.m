@@ -9,22 +9,31 @@ ParaSetting_DualComb;
 % computer is set as 192.168.0.1
 ip_lecroy = '192.168.0.100';
 ip_SMW = '192.168.0.2';  
-bit_sequence_length = 2^14;
-constellation_points = 16;
+ip_SMA = '192.168.0.5'; 
+bit_sequence_length = 2^16;
+constellation_points = SC.ModulationFormats;
 fs_DAC = 2.4e9;
 baud_rate = SC.SymbolRates;
-center_freq = 60e6;
-power = -11;
+center_freq = 110e6;
+power = -13;
 
-mixer_freq = 25.97e9*6;
-comb_freq = 26e9*6;
+mixer_freq_siggen = 27.375e9;
+mixer_freq = mixer_freq_siggen*6;
+sig_comb_freq = 25e9;
+LO_comb_freq = 27e9;
 
-comb_diff = comb_freq - mixer_freq;
+LO_channel = round(abs(mixer_freq - sig_comb_freq*round(mixer_freq/sig_comb_freq))/(LO_comb_freq-sig_comb_freq));
+sig_channel_pos = abs(LO_channel + (-1).^(round(mixer_freq/(2.*sig_comb_freq))) .* round(mixer_freq/sig_comb_freq));
+sig_channel_neg = abs(LO_channel - (-1).^(round(mixer_freq/(2.*sig_comb_freq))) .* round(mixer_freq/sig_comb_freq));
+
+% comb_diff = comb_freq - mixer_freq;
+% apparent_freq = 1e9-(mixer_freq - 2e9*round(mixer_freq/2e9));
+apparent_freq = (mixer_freq - 2e9*round(mixer_freq/2e9));
 
 fs_scope = 10e9;
-comment = "_4_no_eravant";
+comment = "";
 
-file_location = strcat("C:\\Users\\",getenv('username'),"\\OneDrive - Nokia\\ExperimentData\\2025-08-25_UCL_dualcomb\\");
+file_location = strcat("C:\\Users\\",getenv('username'),"\\OneDrive - Nokia\\ExperimentData\\2025-08-28_UCL_dualcomb_sweep_round2\\");
 if ~exist(file_location, 'dir')
    mkdir(file_location)
 end
@@ -32,11 +41,13 @@ filename = strcat('DualComb_',....
                   string(center_freq*1e-6),'MHz_',...
                   string(power),'dBm_',...
                   string(int64(baud_rate/1e6)),'MBd',...
-                  string(constellation_points),'-QAM',...
+                  string(constellation_points),'-QAM_',...
                   comment);
               
 %% TxSig
-bitSeqVal = nrPRBS(1,bit_sequence_length);
+bit_sequence_length_cut = log2(constellation_points)*floor(bit_sequence_length/log2(constellation_points));
+bitSeqVal = nrPRBS(1,bit_sequence_length_cut);
+
 constSeq = qammod(int8(bitSeqVal),constellation_points,'InputType','bit','UnitAveragePower',true);
 
 if FLAG.if_CreateDACFiles 
@@ -58,11 +69,20 @@ end
 
 %% Scope
 if FLAG.if_CaptureNew
+
+    SMA = visa('rs',strcat('TCPIP::',string(ip_SMA),'::inst0::INSTR'));
+    fopen(SMA);
+    query(SMA,':OUTPut:ALL:STATe 1; *OPC?');
+    query(SMA,':SOURce1:FREQuency:MODE CW; *OPC?');
+    query(SMA,strcat(":SOURce1:FREQuency ",string(mixer_freq_siggen),"; *OPC?"));
+    fclose(SMA);
+    pause(2);
+
     output = acquire_LeCroy_scope_data(ip_lecroy, 2*length(txSig)*fs_scope/fs_DAC);
-    writematrix(output,strcat(file_location,"Rx_",filename));
+    writematrix(output,strcat(file_location,"Rx_",strcat(filename,string(mixer_freq/1e6),'MHZ')));
 
 else
-    output = readmatrix(strcat(file_location,"Rx_",filename));
+    output = readmatrix(strcat(file_location,"Rx_",strcat(filename,string(mixer_freq/1e6),'MHZ')));
 end
 
 rxSig = output(:,2);
@@ -70,7 +90,7 @@ spectrum_plot(rxSig,fs_scope);
 
 %% shift to baseband
 T = (0:(length(rxSig)-1)).*(1/fs_scope);
-freq_shift = exp(1i*2*pi*(-center_freq-comb_diff)*T).';
+freq_shift = exp(1i*2*pi*(-center_freq-apparent_freq)*T).';
 rxSig = freq_shift.*rxSig;
 
 % rxSig = conj(rxSig);
@@ -118,3 +138,6 @@ DATA_MOD.indexes = indexes_xcorr;
 DATA_MOD.DAC_FrameSize = length(txSig);
 
 [Report]=RX_DSP_SC_Main(rxSig_resampled,constSeq,DATA_MOD,EQUIPMENT,FLAG);
+
+fprintf(strcat("Next freq up: ",string(mixer_freq_siggen/1e9+4/6),"\n"));
+fprintf(strcat("Next freq down: ",string(mixer_freq_siggen/1e9-4/6),"\n"));
