@@ -17,7 +17,7 @@ baud_rate = SC.SymbolRates;
 center_freq = 110e6;
 power = -13;
 
-mixer_freq_siggen = 27.375e9;
+mixer_freq_siggen = 22.042e9;
 mixer_freq = mixer_freq_siggen*6;
 sig_comb_freq = 25e9;
 LO_comb_freq = 27e9;
@@ -27,13 +27,13 @@ sig_channel_pos = abs(LO_channel + (-1).^(round(mixer_freq/(2.*sig_comb_freq))) 
 sig_channel_neg = abs(LO_channel - (-1).^(round(mixer_freq/(2.*sig_comb_freq))) .* round(mixer_freq/sig_comb_freq));
 
 % comb_diff = comb_freq - mixer_freq;
-% apparent_freq = 1e9-(mixer_freq - 2e9*round(mixer_freq/2e9));
-apparent_freq = (mixer_freq - 2e9*round(mixer_freq/2e9));
+apparent_freq = 1e9-(mixer_freq - 2e9*round(mixer_freq/2e9));
+% apparent_freq = (mixer_freq - 2e9*round(mixer_freq/2e9));
 
 fs_scope = 10e9;
 comment = "";
 
-file_location = strcat("C:\\Users\\",getenv('username'),"\\OneDrive - Nokia\\ExperimentData\\2025-08-28_UCL_dualcomb_sweep_round2\\");
+file_location = strcat("C:\\Users\\",getenv('username'),"\\OneDrive - Nokia\\ExperimentData\\2025-08-28_UCL_dualcomb_sweep\\");
 if ~exist(file_location, 'dir')
    mkdir(file_location)
 end
@@ -90,10 +90,10 @@ spectrum_plot(rxSig,fs_scope);
 
 %% shift to baseband
 T = (0:(length(rxSig)-1)).*(1/fs_scope);
-freq_shift = exp(1i*2*pi*(-center_freq-apparent_freq)*T).';
+freq_shift = exp(1i*2*pi*(center_freq-apparent_freq)*T).';
 rxSig = freq_shift.*rxSig;
 
-% rxSig = conj(rxSig);
+rxSig = conj(rxSig);
 spectrum_plot(rxSig,fs_scope);
 
 txSig_resampled = resample(txSig,fs_scope,fs_DAC);

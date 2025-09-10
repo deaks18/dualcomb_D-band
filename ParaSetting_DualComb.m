@@ -2,7 +2,7 @@ FLAG.if_PlotFigures = 0;
 FLAG.if_PlotMIMO = 0;
 
 FLAG.if_CreateDACFiles = 0;
-FLAG.if_CaptureNew = 1;
+FLAG.if_CaptureNew = 0;
 FLAG.if_PlotSYNC = 1;
 FLAG.Tx_Conjugation = 0;
 FLAG.if_RunSymbolDecision = 1;
