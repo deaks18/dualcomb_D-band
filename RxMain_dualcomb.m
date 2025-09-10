@@ -17,7 +17,7 @@ baud_rate = SC.SymbolRates;
 center_freq = 110e6;
 power = -13;
 
-mixer_freq_siggen = 22.042e9;
+mixer_freq_siggen = 28.036e9;
 mixer_freq = mixer_freq_siggen*6;
 sig_comb_freq = 25e9;
 LO_comb_freq = 27e9;
@@ -27,7 +27,7 @@ sig_channel_pos = abs(LO_channel + (-1).^(round(mixer_freq/(2.*sig_comb_freq))) 
 sig_channel_neg = abs(LO_channel - (-1).^(round(mixer_freq/(2.*sig_comb_freq))) .* round(mixer_freq/sig_comb_freq));
 
 % comb_diff = comb_freq - mixer_freq;
-apparent_freq = 1e9-(mixer_freq - 2e9*round(mixer_freq/2e9));
+apparent_freq = -(mixer_freq - 2e9*round(mixer_freq/2e9));
 % apparent_freq = (mixer_freq - 2e9*round(mixer_freq/2e9));
 
 fs_scope = 10e9;
@@ -48,7 +48,7 @@ filename = strcat('DualComb_',....
 bit_sequence_length_cut = log2(constellation_points)*floor(bit_sequence_length/log2(constellation_points));
 bitSeqVal = nrPRBS(1,bit_sequence_length_cut);
 
-constSeq = qammod(int8(bitSeqVal),constellation_points,'InputType','bit','UnitAveragePower',true);
+constSeq = qammod(int8(bitSeqVal),constellation_points,'InputType','bit','UnitAveragePower',false);
 
 if FLAG.if_CreateDACFiles 
     filter_span_symbols = 50;
@@ -90,10 +90,10 @@ spectrum_plot(rxSig,fs_scope);
 
 %% shift to baseband
 T = (0:(length(rxSig)-1)).*(1/fs_scope);
-freq_shift = exp(1i*2*pi*(center_freq-apparent_freq)*T).';
+freq_shift = exp(1i*2*pi*(-center_freq-apparent_freq)*T).';
 rxSig = freq_shift.*rxSig;
 
-rxSig = conj(rxSig);
+% rxSig = conj(rxSig);
 spectrum_plot(rxSig,fs_scope);
 
 txSig_resampled = resample(txSig,fs_scope,fs_DAC);

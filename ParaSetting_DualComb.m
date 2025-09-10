@@ -26,8 +26,8 @@ SC.Ini_Phase = 0;
 SC.band_center_freq = 0; %0; %0;
 SC.Symbol_Order = 'gray';
 SC.DimensionMode = 'PS-QAM';
-SC.Betas = 1;
-SC.beta_actual = 1;
+SC.Betas = 2;
+SC.beta_actual = 2;
 
 SC.DSP.mu = 6e-4;
 SC.DSP.TrainingSymbols = 1000;
