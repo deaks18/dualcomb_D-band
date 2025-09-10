@@ -17,7 +17,7 @@ baud_rate = SC.SymbolRates;
 center_freq = 110e6;
 power = -13;
 
-mixer_freq_siggen = 28.036e9;
+mixer_freq_siggen = 22.042e9;
 mixer_freq = mixer_freq_siggen*6;
 sig_comb_freq = 25e9;
 LO_comb_freq = 27e9;
@@ -27,7 +27,7 @@ sig_channel_pos = abs(LO_channel + (-1).^(round(mixer_freq/(2.*sig_comb_freq))) 
 sig_channel_neg = abs(LO_channel - (-1).^(round(mixer_freq/(2.*sig_comb_freq))) .* round(mixer_freq/sig_comb_freq));
 
 % comb_diff = comb_freq - mixer_freq;
-apparent_freq = -(mixer_freq - 2e9*round(mixer_freq/2e9));
+apparent_freq = 1e9-(mixer_freq - 2e9*round(mixer_freq/2e9));
 % apparent_freq = (mixer_freq - 2e9*round(mixer_freq/2e9));
 
 fs_scope = 10e9;
@@ -87,6 +87,23 @@ end
 
 rxSig = output(:,2);
 spectrum_plot(rxSig,fs_scope);
+
+%% spectrum plot for paper
+[freqs, PSD] = singlesided_PSD(rxSig, fs_scope);
+freqs = freqs(freqs<1e9);
+PSD = PSD(freqs<1e9);
+
+avg_no = 50;
+
+PSD_avg = 10*log10(movmean(10.^(PSD./10),avg_no));
+PSD_avg = PSD_avg(1:avg_no:end);
+PSD_avg = PSD_avg - max(PSD_avg);
+freqs_avg = freqs(1:avg_no:end)/1e9;
+
+figure; plot(freqs_avg,PSD_avg);
+T = table(freqs_avg, PSD_avg, 'VariableNames', {'freq', 'psd'});
+
+writetable(T, 'spectrum_paper.csv');
 
 %% shift to baseband
 T = (0:(length(rxSig)-1)).*(1/fs_scope);

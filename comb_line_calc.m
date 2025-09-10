@@ -19,3 +19,9 @@ hold on; plot(mixer_freq/6e9,sig_channel_pos);
 hold on; plot(mixer_freq/6e9,sig_channel_neg);
 
 legend('LO','Sig pos','Sig neg');
+
+%% write to csv for paper
+
+T = table(mixer_freq.'/1e9, LO_channel.', sig_channel_pos.', sig_channel_neg.', 'VariableNames', {'freq', 'lo', 'pos', 'neg'});
+
+writetable(T, 'channel_assignment.csv');
