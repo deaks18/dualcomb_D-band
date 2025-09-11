@@ -107,10 +107,10 @@ writetable(T, 'spectrum_paper.csv');
 
 %% shift to baseband
 T = (0:(length(rxSig)-1)).*(1/fs_scope);
-freq_shift = exp(1i*2*pi*(-center_freq-apparent_freq)*T).';
+freq_shift = exp(1i*2*pi*(center_freq-apparent_freq)*T).';
 rxSig = freq_shift.*rxSig;
 
-% rxSig = conj(rxSig);
+rxSig = conj(rxSig);
 spectrum_plot(rxSig,fs_scope);
 
 txSig_resampled = resample(txSig,fs_scope,fs_DAC);
