@@ -158,3 +158,13 @@ DATA_MOD.DAC_FrameSize = length(txSig);
 
 fprintf(strcat("Next freq up: ",string(mixer_freq_siggen/1e9+4/6),"\n"));
 fprintf(strcat("Next freq down: ",string(mixer_freq_siggen/1e9-4/6),"\n"));
+
+%             volt_eql = Volterra_SampEqualizer();
+%             volt_eql.NLtap = [91 0 11];
+%             volt_eql.NLmu.scale1st = 1e-4*[5 1 0.5];  % step size of the linear terms
+%             volt_eql.NLmu.scale2nd = 1e-5*[1 0.5 0.1];  % step size of the 2nd order nonlinear terms
+%             volt_eql.trainlen = 1e3;
+%             volt_eql.NLmu.scale3rd = 1e-7*[1 0.1 0.1];
+%             [symbolEst, symbolDet] = volt_eql.Equalize(Rx_train.', resample(Tx_train,2,1).', unique(Tx_train), 2);
+
+       
